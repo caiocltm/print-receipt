@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt Parser</title>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+        #output {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Products</h1>
+    <textarea id="items" rows="10" cols="50" placeholder="Copy and paste the products details here"></textarea><br>
+    <button onclick="printReceipt()">Print Receipt</button>
+
+
+    <h1>Receipt</h1>
+    <div id="output"></div>
+
+    <script>
+        const GOODS_TAX = 0.10;
+        const IMPORTED_GOODS_TAX = 0.05;
+
+
+        function isImported(description) {
+            return description.includes('imported');
+        }
+
+        function isGoodsNotExempt(description) {
+            return !description.includes("book") && !description.includes("chocolate") && !description.includes("pills")
+        }
+
+        
+        function roundUp(value) {
+            return Math.ceil(value * 20) / 20;
+        }
+
+        function getSalesTaxes(price, description) {
+            let itemSalesTax = 0;
+
+            // Check if the product is NOT tax exempt
+            if (isGoodsNotExempt(description)) 
+                itemSalesTax += price * GOODS_TAX;
+            
+            // Check if the product is imported
+            if (isImported(description)) 
+                itemSalesTax += price * IMPORTED_GOODS_TAX;
+
+            // Round up to the nearest 0.05
+            return roundUp(itemSalesTax);
+        }
+
+
+        function getProductDetails(line) {
+            // Split the line at the word "at" to get the product quantity/description and the shelf price.
+            const productDetails = line.trim().split(" at ").map((string) => string.trim());
+
+            // Get the string containing the product quantity and description
+            const quantityAndItem = productDetails[0].trim().split(" ").map((string) => string.trim());
+
+            // Get the quantity value within the string and parse to integer
+            const quantity = parseInt(quantityAndItem[0]);
+
+            // Get the production description ignoring the first value of the string (quantity value).
+            const description = quantityAndItem.slice(1).join(" ");
+
+            // Get the shelf price within the product details string.
+            const price = parseFloat(productDetails[1]);
+
+            return {
+                quantity,
+                description,
+                price,
+            }
+        }
+
+        function printReceipt() {
+            // Get all the content inputted in the text area component.
+            const itemsText = document.getElementById("items").value;
+            const outputDiv = document.getElementById("output");
+
+            // Split the inputted text by a new line. Therefore, get each line individually containing the product details.
+            const lines = itemsText.split('\n');
+
+            // Clear previous output.
+            outputDiv.innerHTML = ""; 
+
+            let itemTotalPrice = 0;
+            let total = 0;
+            let totalSalesTax = 0;
+
+            for (const line of lines) {
+                // Parse the line content
+                const { description, quantity, price } = getProductDetails(line);
+
+                const itemSalesTaxes = getSalesTaxes(price, description);
+
+                // Calculate the item price after taxes
+                const itemPriceAfterSalesTaxes = (price + itemSalesTaxes) * quantity;
+
+                // Sum the item sales taxes multiplied by the item quantity into the total count of sales taxes.
+                totalSalesTax += itemSalesTaxes * quantity;
+
+                // Sum the item price after taxes into the total count
+                total += itemPriceAfterSalesTaxes;
+                
+                // Print the output description into the HTML component
+                outputDiv.innerHTML += `${quantity} ${description}: ${itemPriceAfterSalesTaxes.toFixed(2)}<br>`;
+            }
+
+            outputDiv.innerHTML += `Sales Taxes: ${totalSalesTax.toFixed(2)}<br>`;
+            outputDiv.innerHTML += `Total: ${total.toFixed(2)}`;
+        }
+    </script>
+
+</body>
+</html>
