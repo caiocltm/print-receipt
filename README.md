@@ -30,6 +30,6 @@ After open the file in the browser, you should see the page below
 
 ![Landing page](image-1.png)
 
-**5. Copy and paste the products details into the `Products` text area.
+**5. Copy and paste the products details into the `Products` text area.**
 
-**6. Click on `Print Receipt` button.
+**6. Click on `Print Receipt` button and the result must be shown in the `Receipt` text area.**
